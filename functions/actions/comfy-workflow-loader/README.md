@@ -1,6 +1,7 @@
 # ComfyUI Workflow Loader
 
-**Important: Will only work with models that do not use a negative prompt (eg FLUX)**
+***Important: Will only work with models that do not use a negative prompt (eg FLUX)***
+
 
 ## Installation
 
