@@ -6,7 +6,7 @@ This repository serves as a public and private store for my OWUI tools, scripts,
 
 ## Current Tools
 
-As of now, this repository contains a single action function: [comfy-workflow-loader](comfy-workflow-loader).  This function will list and load comfyui workflows stored in a designated knowledge base.
+As of now, this repository contains a single action function: [comfy-workflow-loader](https://github.com/FooleanBool/openwebui/tree/main/functions/actions/comfy-workflow-loader).  This function will list and load comfyui workflows stored in a designated knowledge base.
 
 ## Getting Started
 
