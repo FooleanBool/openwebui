@@ -22,7 +22,27 @@
    - Enter the `Knowledge Base ID` you saved earlier.
    - Provide your `OWUI API token`.
    - Optionally, enable `Debug` to see debug messages appended to the prompt.
+     
+### Enabling Functions
 
+To use custom functions, you need to enable them. There are two ways to do this:
+
+1. Assigning a Function to a Model:
+
+   - Navigate to `Workspace => Models`.
+   - Select the model you want to configure.
+   - Click the pencil icon to edit the model's settings.
+   - Scroll down to the "Functions" section.
+   - Check the box next to the desired functions to enable them for that specific model.
+   - Click "Save" to apply the changes.
+
+2. Making a Function Global:
+
+   - Navigate to `Workspace => Functions`.
+   - Click the "…" menu next to the function you want to make global.
+   - Toggle the "Global" switch to enable the function for all models.
+   
+   
 ## Workflow Configuration
 
 ### Essential Requirements
