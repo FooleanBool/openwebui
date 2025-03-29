@@ -1,5 +1,7 @@
 # ComfyUI Workflow Loader
 
+**Will only work with models that do not use a negative prompt (eg FLUX)**
+
 ## Installation
 
 ### Pre-installation Steps
@@ -24,7 +26,7 @@
 
 ### Essential Requirements
 1. **ComfyUI Node Titles:** The script uses pattern matching on node titles from the workflow. Therefore, five nodes must be titled specifically:
-   - `'model'`: This is your main model loading node (UNETloader)
+   - `'model'`: This is your main model loading node (UNETLoader)
    - `'positive_prompt'`: This is your input prompt (CLIPTextEncode)
    - `'dimensions'`: The dimensions of the image (EmptySD3LatentImage)
    - `'seed'`: The seed node (RandomNoise)
