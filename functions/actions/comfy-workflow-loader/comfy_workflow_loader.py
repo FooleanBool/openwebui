@@ -4,7 +4,7 @@ author: FooleanBool
 author_url: https://github.com/FooleanBool
 funding_url: https://github.com/FooleanBool
 version: 0.2.0
-required_open_webui_version: 0.5.20
+required_open_webui_version: 0.5.1
 """
 
 from pydantic import BaseModel, Field
@@ -18,16 +18,16 @@ import os
 class Action:
     class Valves(BaseModel):
         api_base_url: str = Field(
-            default="http://192.168.1.201:3000",
-            description="Base URL for the API server (e.g., http://localhost:3000)",
+            default="http://localhost:3000",
+            description="Base URL for the API server (e.g. http://localhost:3000)",
         )
         knowledge_base_id: str = Field(
-            default="514ed77e-1f33-47d0-909d-583ad6dd9359",
+            default="comfy-workflows-knowledge-base-id",
             description="ID of the knowledge base containing ComfyUI workflows",
         )
         auth_token: str = Field(
-            default="",
-            description="Authentication token for API access",
+            default="my-owui-api-key",
+            description="Authentication token for OWUI API access",
         )
         enable_debug: bool = Field(
             default=False, description="Enable debug output messages"
@@ -35,8 +35,24 @@ class Action:
 
     def __init__(self):
         self.valves = self.Valves()
-        self.auth_headers = {
+
+    def get_auth_headers(self):
+        """
+        Generates authentication headers for API requests.
+        
+        Returns:
+            dict: Headers dictionary containing:
+                - Authorization: Bearer token
+                - accept: application/json
+                - Content-Type: application/json
+        
+        The headers are generated dynamically each time to ensure the latest
+        authentication token is used.
+        """
+        return {
             "Authorization": f"Bearer {self.valves.auth_token}",
+            "accept": "application/json",
+            "Content-Type": "application/json",
         }
 
     async def action(
@@ -46,6 +62,31 @@ class Action:
         __event_emitter__=None,
         __event_call__=None,
     ) -> Optional[dict]:
+        """
+        Main entry point for the ComfyUI workflow loader action.
+        
+        This method handles the complete workflow of:
+        1. Fetching available workflows from the knowledge base
+        2. Presenting a selection interface to the user
+        3. Parsing and validating the selected workflow
+        4. Updating the system configuration with the workflow data
+        
+        Args:
+            body (dict): The request body (currently unused)
+            __user__: User context (unused)
+            __event_emitter__: Callback for emitting status and debug messages
+            __event_call__: Callback for getting user input
+        
+        Returns:
+            Optional[dict]: A dictionary containing the loaded workflow name if successful,
+                           None if the operation fails or is cancelled
+        
+        Example:
+            >>> action_instance = Action()
+            >>> result = await action_instance.action({})
+            >>> print(result)
+            {'workflow_name': 'my_workflow'}
+        """
         print(f"action:{__name__}")
 
         # Step 1: Fetch ComfyUI workflows knowledge base by id
@@ -94,6 +135,7 @@ class Action:
                 }
             )
 
+        # Attempts to clear input area below all fail.
         response = await __event_call__(
             {
                 "type": "input",
@@ -273,10 +315,36 @@ class Action:
         return {"workflow_name": workflow_base_name}
 
     async def get_workflows(self, kb_id: str):
+        """
+        Fetches ComfyUI workflows from the specified knowledge base.
+        
+        Args:
+            kb_id (str): The ID of the knowledge base containing the workflows
+        
+        Returns:
+            Optional[dict]: A dictionary containing the workflows data if successful,
+                           None if the request fails
+        
+        The returned data structure should contain:
+        {
+            "files": [
+                {
+                    "filename": str,
+                    "data": {
+                        "content": str  # JSON string of workflow data
+                    }
+                }
+            ]
+        }
+        
+        Raises:
+            aiohttp.ClientError: If the API request fails
+            json.JSONDecodeError: If the response is not valid JSON
+        """
         url = f"{self.valves.api_base_url}/api/v1/knowledge/{kb_id}"
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=self.auth_headers) as response:
+                async with session.get(url, headers=self.get_auth_headers()) as response:
                     if response.status != 200:
                         print(f"Error fetching workflows: {await response.text()}")
                         return None
@@ -290,6 +358,46 @@ class Action:
             return None
 
     def parse_workflow(self, workflow_data):
+        """
+        Parses ComfyUI workflow data to extract required node information.
+        
+        Args:
+            workflow_data (Union[str, dict]): The workflow data as either a JSON string
+                                            or a parsed dictionary
+        
+        Returns:
+            Optional[dict]: A dictionary containing parsed workflow data if successful,
+                           None if parsing fails
+        
+        The returned data structure contains:
+        {
+            "prompt": str,
+            "width": int,
+            "height": int,
+            "model": str,
+            "steps": int,
+            "seed": int,
+            "node_ids": {
+                "prompt": str,
+                "model": str,
+                "width": str,
+                "height": str,
+                "steps": str,
+                "seed": str
+            }
+        }
+        
+        Required node titles in the workflow:
+        - 'model': Main model loading node (UNETloader)
+        - 'positive_prompt': Input prompt node (CLIPTextEncode)
+        - 'dimensions': Image dimensions node (EmptySD3LatentImage)
+        - 'seed': Random noise node (RandomNoise)
+        - 'scheduler': Steps node (BasicScheduler)
+        
+        Raises:
+            ValueError: If required nodes are missing from the workflow
+            json.JSONDecodeError: If workflow_data is an invalid JSON string
+        """
         try:
             # Load json string if it's a string
             if isinstance(workflow_data, str):
@@ -355,7 +463,59 @@ class Action:
             print(f"Error parsing workflow data: {e}")
             return None
 
+    async def get_current_config(self):
+        """
+        Retrieves the current configuration from the API.
+        
+        Returns:
+            Optional[dict]: The current configuration if successful,
+                           None if the request fails
+        
+        The configuration includes settings for:
+        - enabled: bool
+        - engine: str
+        - comfyui: dict
+        - openai: dict
+        - automatic1111: dict
+        - gemini: dict
+        
+        Raises:
+            aiohttp.ClientError: If the API request fails
+            json.JSONDecodeError: If the response is not valid JSON
+        """
+        config_url = f"{self.valves.api_base_url}/api/v1/images/config"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(config_url, headers=self.get_auth_headers()) as response:
+                    if response.status != 200:
+                        print(f"Error fetching current config: {await response.text()}")
+                        return None
+                    return await response.json()
+        except Exception as e:
+            print(f"Exception in get_current_config: {e}")
+            return None
+
     async def update_configurations(self, workflow_data):
+        """
+        Updates both image and main configurations with the selected workflow data.
+        
+        This method performs two updates:
+        1. Updates the image configuration with model, size, and steps
+        2. Updates the main configuration with the ComfyUI workflow data
+        
+        Args:
+            workflow_data (Union[str, dict]): The workflow data to apply
+        
+        Returns:
+            bool: True if both updates succeed, False otherwise
+        
+        The method preserves all existing configuration values except for the ComfyUI
+        section, which is updated with the new workflow data.
+        
+        Raises:
+            aiohttp.ClientError: If any API request fails
+            json.JSONDecodeError: If workflow_data is an invalid JSON string
+        """
         if not workflow_data:
             return False
 
@@ -382,83 +542,65 @@ class Action:
                     "IMAGE_STEPS": parsed_workflow_data["steps"],
                 }
 
-                headers = {
-                    "accept": "application/json",
-                    "Content-Type": "application/json",
-                    **self.auth_headers,
-                }
-
                 # Update image config using POST method
                 async with session.post(
-                    image_config_url, json=image_config, headers=headers
+                    image_config_url, json=image_config, headers=self.get_auth_headers()
                 ) as response:
                     if response.status != 200:
                         print(f"Error updating image config: {await response.text()}")
                         return False
 
-                # Construct the complete config update
-                update_data = {
-                    "enabled": True,
-                    "engine": "comfyui",
-                    "prompt_generation": False,
-                    "openai": {
-                        "OPENAI_API_BASE_URL": "https://api.openai.com/v1",
-                        "OPENAI_API_KEY": "",
-                    },
-                    "automatic1111": {
-                        "AUTOMATIC1111_BASE_URL": "http://127.0.0.1:7860",
-                        "AUTOMATIC1111_API_AUTH": "username:password",
-                        "AUTOMATIC1111_CFG_SCALE": None,
-                        "AUTOMATIC1111_SAMPLER": None,
-                        "AUTOMATIC1111_SCHEDULER": None,
-                    },
-                    "comfyui": {
-                        "COMFYUI_BASE_URL": "http://host.docker.internal:8188",
-                        "COMFYUI_API_KEY": "",
-                        "COMFYUI_WORKFLOW": workflow_data,
-                        "COMFYUI_WORKFLOW_NODES": [
-                            {
-                                "type": "prompt",
-                                "key": "text",
-                                "node_ids": [
-                                    parsed_workflow_data["node_ids"]["prompt"]
-                                ],
-                            },
-                            {
-                                "type": "model",
-                                "key": "ckpt_name",
-                                "node_ids": [parsed_workflow_data["node_ids"]["model"]],
-                            },
-                            {
-                                "type": "width",
-                                "key": "width",
-                                "node_ids": [parsed_workflow_data["node_ids"]["width"]],
-                            },
-                            {
-                                "type": "height",
-                                "key": "height",
-                                "node_ids": [
-                                    parsed_workflow_data["node_ids"]["height"]
-                                ],
-                            },
-                            {
-                                "type": "steps",
-                                "key": "steps",
-                                "node_ids": [parsed_workflow_data["node_ids"]["steps"]],
-                            },
-                            {
-                                "type": "seed",
-                                "key": "noise_seed",
-                                "node_ids": [parsed_workflow_data["node_ids"]["seed"]],
-                            },
-                        ],
-                    },
-                    "gemini": {"GEMINI_API_BASE_URL": "", "GEMINI_API_KEY": ""},
-                }
+                # Get current configuration
+                current_config = await self.get_current_config()
+                if not current_config:
+                    print("Failed to get current configuration")
+                    return False
+
+                # Only update the comfyui section while preserving all other settings
+                if "comfyui" not in current_config:
+                    current_config["comfyui"] = {}
+                
+                current_config["comfyui"].update({
+                    "COMFYUI_BASE_URL": current_config["comfyui"].get("COMFYUI_BASE_URL", "http://host.docker.internal:8188"),
+                    "COMFYUI_API_KEY": current_config["comfyui"].get("COMFYUI_API_KEY", ""),
+                    "COMFYUI_WORKFLOW": workflow_data,
+                    "COMFYUI_WORKFLOW_NODES": [
+                        {
+                            "type": "prompt",
+                            "key": "text",
+                            "node_ids": [parsed_workflow_data["node_ids"]["prompt"]],
+                        },
+                        {
+                            "type": "model",
+                            "key": "ckpt_name",
+                            "node_ids": [parsed_workflow_data["node_ids"]["model"]],
+                        },
+                        {
+                            "type": "width",
+                            "key": "width",
+                            "node_ids": [parsed_workflow_data["node_ids"]["width"]],
+                        },
+                        {
+                            "type": "height",
+                            "key": "height",
+                            "node_ids": [parsed_workflow_data["node_ids"]["height"]],
+                        },
+                        {
+                            "type": "steps",
+                            "key": "steps",
+                            "node_ids": [parsed_workflow_data["node_ids"]["steps"]],
+                        },
+                        {
+                            "type": "seed",
+                            "key": "noise_seed",
+                            "node_ids": [parsed_workflow_data["node_ids"]["seed"]],
+                        },
+                    ],
+                })
 
                 # Update main config
                 async with session.post(
-                    config_url, json=update_data, headers=headers
+                    config_url, json=current_config, headers=self.get_auth_headers()
                 ) as response:
                     if response.status != 200:
                         print(f"Error updating config: {await response.text()}")
@@ -471,9 +613,9 @@ class Action:
             return False
 
 
-# Example usage in a real scenario would involve creating an instance of Action and calling action()
+# Example usage 
 if __name__ == "__main__":
     # You can specify the API base URL here if needed
-    api_base_url = "http://192.168.1.201:3000"
+    api_base_url = "http://localhost:3000"
     action_instance = Action()
     asyncio.run(action_instance.action({}))
