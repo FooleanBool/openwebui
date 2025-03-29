@@ -4,7 +4,7 @@
 
 This repository serves as a public and private store for my OWUI tools, scripts, and functions. It's a collection of utilities designed to enhance the functionality of the [openweb UI (OWUI)](https://github.com/open-webui/open-webui).
 
-## Current Tool
+## Current Tools
 
 As of now, this repository contains a single action function: `comfy-workflow-loader`.  This function will list and load comfyui workflows stored in a designated knowledge base.
 
