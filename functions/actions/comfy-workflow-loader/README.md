@@ -41,7 +41,9 @@
   - Example: Instead of `fluxfp8` and `fluxfp16`, use `8fp-flux` and `16fp-flux`.
 
 ### Adding Workflows to the Knowledge Base
-You can add workflows in two ways:
+You can add workflows in two ways, begin by exporting a workflow from ComfyUI: `Workflow -> Export(API)`
+
+
 1. **Add Text Content:**
    - Add text content directly to the KB.
    - Paste the workflow contents.
