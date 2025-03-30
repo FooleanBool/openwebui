@@ -2,7 +2,7 @@
 
 A simple tool for quickly updating voice settings using shorthand commands.
 
-> **Note:** Quick voice config requires a chat refresh for voice changes to take effect, quickest way is to switch to another chat and back again. (need to open issue). 
+> **Note:** Quick voice config requires a chat refresh for voice changes to take effect, quickest way is to switch to another chat and back again. [issue](https://github.com/open-webui/open-webui/issues/12193) 
 This tool was built and tested specifically for the Kokoro FastAPI implementation. While it may work with other Open WebUI implementations, it has not been tested with them.
 
 
