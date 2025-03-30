@@ -8,7 +8,7 @@ This repository serves as a public and private store for my OWUI tools, scripts,
 
 This repository contains three action functions:
 
-1. [ComfyUI Workflow Loader](functions/actions/comfy_workflow_loader/README.md) - Loads and applies ComfyUI workflows to Open WebUI, preserving all workflow settings and configurations.
+1. [ComfyUI Workflow Loader](functions/actions/comfy-workflow-loader/README.md) - Loads and applies ComfyUI workflows to Open WebUI, preserving all workflow settings and configurations.
 
 2. [Quick Image Config](functions/actions/quick-image-conf/README.md) - A simple tool for quickly updating image generation settings using shorthand commands, perfect for rapid adjustments to model, steps, and dimensions.
 
