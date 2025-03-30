@@ -85,5 +85,5 @@ You can add workflows in two ways, begin by exporting a workflow from ComfyUI: `
 ---
 
 TODO:
-- Fix pattern matching on workflow name to anchor from start of word, not match anywhere in word.
-  
+- Fix pattern matching on workflow name to anchor from start of word, not match anywhere in word. [done]
+- When entering an empty input, get error, need to add input check.

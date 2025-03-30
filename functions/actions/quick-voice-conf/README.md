@@ -2,7 +2,8 @@
 
 A simple tool for quickly updating voice settings using shorthand commands.
 
-> **Note:** This tool was built and tested specifically for the Kokoro FastAPI implementation. While it may work with other Open WebUI implementations, it has not been tested with them.
+> **Note:** Quick voice config requires a chat refresh for voice changes to take effect, quickest way is to switch to another chat and back again. (need to open issue). This tool was built and tested specifically for the Kokoro FastAPI implementation. While it may work with other Open WebUI implementations, it has not been tested with them.
+
 
 ## Installation
 
@@ -90,6 +91,7 @@ VC:voice_name SP:1.5 AP:tg
 --- 
 
 TODO:
- - fix info message in modal header: too much info, spread it out like in quick image conf
- - Add note that tool allows free setting of voice speed (0.5-2.0), but OWUI restricts speed changes from 0.5-2.0 in .25 increments: (0.75, 1.0, 1.25...)
- - Add note: Quick voice requires a chat refresh for voice changes to take effect, quickest way is to switch to another chat and back again. (need to open issue)
+ - fix info message in modal header: too much info, spread it out like in quick image conf [done]
+ - Add note that tool allows free setting of voice speed (0.5-2.0), but OWUI restricts speed changes from 0.5-2.0 in .25 increments: (0.75, 1.0, 1.25...) [done]
+ - Add note: Quick voice requires a chat refresh for voice changes to take effect, quickest way is to switch to another chat and back again. (need to open issue) [done]
+ - fix empty input giving error.

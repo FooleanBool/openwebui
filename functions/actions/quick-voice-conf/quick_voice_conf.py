@@ -179,10 +179,7 @@ class Action:
 
         # Show current values and get input
         current_info = (
-            f"Current settings:\n"
-            f"Voice: {current_values['voice']}\n"
-            f"Speed: {current_values['playback_rate']}\n"
-            f"Autoplay: {'On' if current_values['autoplay'] else 'Off'}\n\n"
+
             f"Use space-separated commands to update:"
         )
 
@@ -200,7 +197,7 @@ class Action:
                 "data": {
                     "title": "Quick Voice Config",
                     "message": current_info,
-                    "placeholder": f"vc:{current_values['voice']} sp:{current_values['playback_rate']} ap:tg",
+                    "placeholder": f"vc:{current_values['voice']} sp:{current_values['playback_rate']} ap: {'On' if current_values['autoplay'] else 'Off'}",
                     "value": "",
                     "type": "text",
                     "clearable": True,
