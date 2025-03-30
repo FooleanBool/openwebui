@@ -6,13 +6,15 @@ This repository serves as a public and private store for my OWUI tools, scripts,
 
 ## Current Tools
 
-This repository contains three action functions:
+This repository contains four action functions:
 
 1. [ComfyUI Workflow Loader](functions/actions/comfy-workflow-loader/README.md) - Loads and applies ComfyUI workflows to Open WebUI, preserving all workflow settings and configurations.
 
 2. [Quick Image Config](functions/actions/quick-image-conf/README.md) - A simple tool for quickly updating image generation settings using shorthand commands, perfect for rapid adjustments to model, steps, and dimensions.
 
 3. [Quick Voice Config](functions/actions/quick-voice-conf/README.md) - A simple tool for quickly updating voice settings using shorthand commands, perfect for rapid adjustments to voice, speed, and auto-playback settings.
+
+4. [Get Events](tools/caldav/get-events/README.md) - A tool for retrieving and formatting calendar events from a CalDAV server, providing structured output of upcoming events with dates, summaries, and locations.
 
 ## Getting Started
 
