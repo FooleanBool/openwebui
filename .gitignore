@@ -1,0 +1,56 @@
+# Common ignore patterns
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.log
+
+# Node.js
+node_modules/
+.DS_Store
+.env
+.env.example
+npm-debug.log
+
+# Docker
+.dockerignore
+docker-compose.yml
+Dockerfile
+
+# Ollama
+.cache/
+*.bin
+
+# Qdrant
+.qdrant_cache/
+
+# n8n
+.n8n/
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Environment variables
+.env
+.env.*
+
+# Custom
+example_action.py
+actions.md

@@ -22,6 +22,7 @@
    - Enter the `Knowledge Base ID` you saved earlier.
    - Provide your `OWUI API token`.
    - Optionally, enable `Debug` to see debug messages appended to the prompt.
+   - Save the changes.
      
 ### Enabling Functions
 
@@ -42,7 +43,7 @@ To use custom functions, you need to enable them. There are two ways to do this:
    - Click the "…" menu next to the function you want to make global.
    - Toggle the "Global" switch to enable the function for all models.
    
-   
+
 ## Workflow Configuration
 
 ### Essential Requirements
@@ -82,3 +83,8 @@ You can add workflows in two ways, begin by exporting a workflow from ComfyUI: `
 4. Click `Confirm` and check the status message above the prompt for information.
 
 ---
+
+TODO:
+- Fix pattern matching on workflow name to anchor from start of word, not match anywhere in word.
+- 
+  
