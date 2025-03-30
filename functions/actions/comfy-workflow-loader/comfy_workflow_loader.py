@@ -174,9 +174,9 @@ class Action:
 
         response = response.strip()
         if len(response) >= 3:  # Minimum 3 characters required
-            # Find all matching filenames
+            # Find all matching filenames that start with the response
             matches = [
-                name for name in base_filenames if response.lower() in name.lower()
+                name for name in base_filenames if name.lower().startswith(response.lower())
             ]
             if len(matches) == 1:  # Exact match or unique partial match
                 workflow_base_name = matches[0]
