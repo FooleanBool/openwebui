@@ -99,34 +99,39 @@ class Action:
         self, updates: Dict[str, Any], current_settings: Dict[str, Any]
     ) -> bool:
         """
-        Updates the user settings with new values.
+        Updates the user settings with new values while preserving all other settings.
         """
         try:
             settings_url = f"{self.valves.api_base_url}/api/v1/users/user/settings/update"
 
+            # Deep copy the current settings to avoid modifying the original
+            update_data = current_settings.copy()
+
             # Get current TTS settings
             current_tts = current_settings.get("ui", {}).get("audio", {}).get("tts", {})
             
-            # Prepare update data
-            update_data = {
-                "ui": {
-                    "audio": {
-                        "tts": {
-                            "voice": updates.get("voice", current_tts.get("voice", "")),
-                            "playbackRate": updates.get("playback_rate", current_tts.get("playbackRate", 1.0)),
-                            "engineConfig": current_tts.get("engineConfig", {"dtype": "fp16"}),
-                            "defaultVoice": current_tts.get("defaultVoice", "am_adam")
-                        }
-                    }
-                }
-            }
+            # Update only the TTS settings that need to change
+            if "voice" in updates or "playback_rate" in updates:
+                if "ui" not in update_data:
+                    update_data["ui"] = {}
+                if "audio" not in update_data["ui"]:
+                    update_data["ui"]["audio"] = {}
+                if "tts" not in update_data["ui"]["audio"]:
+                    update_data["ui"]["audio"]["tts"] = current_tts.copy()
+
+                update_data["ui"]["audio"]["tts"].update({
+                    "voice": updates.get("voice", current_tts.get("voice", "")),
+                    "playbackRate": updates.get("playback_rate", current_tts.get("playbackRate", 1.0)),
+                    "engineConfig": current_tts.get("engineConfig", {"dtype": "fp16"}),
+                    "defaultVoice": current_tts.get("defaultVoice", "am_adam")
+                })
 
             # Handle autoplay toggle
             if updates.get("toggle_autoplay"):
+                if "ui" not in update_data:
+                    update_data["ui"] = {}
                 current_autoplay = current_settings.get("ui", {}).get("responseAutoPlayback", False)
                 update_data["ui"]["responseAutoPlayback"] = not current_autoplay
-            else:
-                update_data["ui"]["responseAutoPlayback"] = current_settings.get("ui", {}).get("responseAutoPlayback", False)
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(
