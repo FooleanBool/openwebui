@@ -100,3 +100,7 @@ ST:16 DM:768x1344 md:"Model Name"
 - Unknown commands will be rejected
 
 --- 
+
+TODO:
+Tidy up line 307, extract string construction to separate function.
+ 

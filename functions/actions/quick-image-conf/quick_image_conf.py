@@ -299,7 +299,7 @@ class Action:
                 "data": {
                     "title": "Quick Image Config",
                     "message": current_info,
-                    "placeholder": f"md: \"{current_values['model']}\" st:{current_values['steps']} dm:{current_values['width']}x{current_values['height']}\nUse `dm:tg` to toggle portrait/landscape.",
+                    "placeholder": f"Current Values:\nmd:\"{current_values['model']}\" st:{current_values['steps']} dm:{current_values['width']}x{current_values['height']}\nUse `dm:tg` to toggle portrait/landscape.",
                     "value": "",
                     "type": "text",
                     "clearable": True,

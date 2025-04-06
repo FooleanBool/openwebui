@@ -90,9 +90,3 @@ VC:voice_name SP:1.5 AP:tg
 - Invalid auto-playback command will be rejected
 
 --- 
-
-TODO:
- - fix info message in modal header: too much info, spread it out like in quick image conf [done]
- - Add note that tool allows free setting of voice speed (0.5-2.0), but OWUI restricts speed changes from 0.5-2.0 in .25 increments: (0.75, 1.0, 1.25...) [done]
- - Add note: Quick voice requires a chat refresh for voice changes to take effect, quickest way is to switch to another chat and back again. (need to open issue) [done]
- - fix empty input giving error.

@@ -5,6 +5,7 @@ author_url: https://github.com/FooleanBool
 funding_url: https://github.com/FooleanBool
 version: 0.1.0
 required_open_webui_version: 0.5.1
+icon_url: data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3C!--%20License%3A%20Apache.%20Made%20by%20bytedance%3A%20https%3A%2F%2Fgithub.com%2Fbytedance%2FIconPark%20--%3E%3Csvg%20width%3D%22800px%22%20height%3D%22800px%22%20viewBox%3D%220%200%2048%2048%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2248%22%20height%3D%2248%22%20fill%3D%22white%22%20fill-opacity%3D%220.01%22%2F%3E%3Cpath%20d%3D%22M24%2044C35.0457%2044%2044%2035.0457%2044%2024C44%2012.9543%2035.0457%204%2024%204C12.9543%204%204%2012.9543%204%2024C4%2035.0457%2012.9543%2044%2024%2044Z%22%20fill%3D%22%232F88FF%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M30%2018V30%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M36%2022V26%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M18%2018V30%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M12%2022V26%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M24%2014V34%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E
 """
 
 from pydantic import BaseModel, Field
@@ -202,7 +203,7 @@ class Action:
                 "data": {
                     "title": "Quick Voice Config",
                     "message": current_info,
-                    "placeholder": f"vc:{current_values['voice']} sp:{current_values['playback_rate']} ap: {'On' if current_values['autoplay'] else 'Off'}",
+                    "placeholder": f"Current Settings:\nvc:{current_values['voice']} sp:{current_values['playback_rate']} ap: {'On' if current_values['autoplay'] else 'Off'}\nUse `ap:tg` to toggle autoplay",
                     "value": "",
                     "type": "text",
                     "clearable": True,
@@ -210,7 +211,7 @@ class Action:
             }
         )
 
-        if not response:
+        if not response:  # User cancelled or cleared the input
             if __event_emitter__:
                 await __event_emitter__(
                     {
@@ -221,6 +222,21 @@ class Action:
             return None
 
         try:
+            # Handle boolean response (clicking confirm on empty modal)
+            if isinstance(response, bool):
+                if __event_emitter__:
+                    await __event_emitter__(
+                        {
+                            "type": "status",
+                            "data": {"description": "No changes made", "done": True},
+                        }
+                    )
+                return None
+                
+            # Ensure response is a string before parsing
+            if not isinstance(response, str):
+                response = str(response)
+                
             # Parse user input
             updates = self.parse_input(response)
 

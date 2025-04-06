@@ -22,6 +22,7 @@
    - Enter the `Knowledge Base ID` you saved earlier.
    - Provide your `OWUI API token`.
    - Optionally, enable `Debug` to see debug messages appended to the prompt.
+   - Optionally, enable `Show VRAM` to display VRAM usage in the workflow selection modal.
    - Save the changes.
      
 ### Enabling Functions
@@ -63,6 +64,7 @@ To use custom functions, you need to enable them. There are two ways to do this:
 - When adding workflows to your knowledge base, name them uniquely (minimum 3 characters).
 - If using similar workflow names, use different beginning characters for easier pattern matching.
   - Example: Instead of `fluxfp8` and `fluxfp16`, use `8fp-flux` and `16fp-flux`.
+- The unload model workflow should be named "unload" (case insensitive) to be recognized by the unload functionality.
 
 ### Adding Workflows to the Knowledge Base
 You can add workflows in two ways, begin by exporting a workflow from ComfyUI: `Workflow -> Export(API)`
@@ -80,10 +82,30 @@ You can add workflows in two ways, begin by exporting a workflow from ComfyUI: `
 1. Click the newly created action button beneath the prompt input of a chat.
 2. View the available workflow list in the modal placeholder text (clear any text to see the list).
 3. Type the name of the workflow to load (minimum 3 characters for unique names).
-4. Click `Confirm` and check the status message above the prompt for information.
+4. Alternatively, type "unload" to unload all models from ComfyUI.
+5. Click `Confirm` and check the status message above the prompt for information.
+
+### VRAM Display
+When the "Show VRAM" option is enabled, the workflow selection modal will display the current VRAM usage in the format:
+```
+VRAM: X.X/Y.Y GB used
+```
+This information is retrieved from ComfyUI's system_stats endpoint and is useful for monitoring GPU memory usage.
+
+### Unload Models Functionality
+The workflow loader includes a built-in function to unload all models from ComfyUI. This is useful for freeing up VRAM when switching between different workflows or when you're done using ComfyUI.
+
+To use this feature:
+1. Click the workflow loader action button.
+2. Type "unload" in the input field.
+3. Click `Confirm`.
+
+The unload functionality requires a special workflow named "unload" in your knowledge base. This workflow should contain the necessary nodes to unload all models from ComfyUI.
 
 ---
 
-TODO:
-- Fix pattern matching on workflow name to anchor from start of word, not match anywhere in word. [done]
-- When entering an empty input, get error, need to add input check.
+Reference:
+```bash
+curl http://localhost:8188/system_stats
+{"system": {"os": "posix", "ram_total": 67250188288, "ram_free": 43860541440, "comfyui_version": "0.3.27", "python_version": "3.11.11 (main, Feb 25 2025, 02:38:55) [GCC 12.2.0]", "pytorch_version": "2.5.1+cu121", "embedded_python": false, "argv": ["./ComfyUI/main.py", "--listen", "--port", "8188"]}, "devices": [{"name": "cuda:0 NVIDIA GeForce RTX 3090 : cudaMallocAsync", "type": "cuda", "index": 0, "vram_total": 25298141184, "vram_free": 5987286066, "torch_vram_total": 17112760320, "torch_vram_free": 25541682}]}
+``` 

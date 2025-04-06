@@ -8,7 +8,7 @@ required_open_webui_version: 0.5.1
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, Union, Generator, Iterator
+from typing import Optional, Union, Generator, Iterator, Dict
 import aiohttp
 import asyncio
 import json
@@ -32,6 +32,14 @@ class Action:
         enable_debug: bool = Field(
             default=False, description="Enable debug output messages"
         )
+        comfyui_url: str = Field(
+            default="http://localhost:8188",
+            description="URL of the ComfyUI server",
+        )
+        show_vram: bool = Field(
+            default=False,
+            description="Show VRAM usage in the workflow selection modal",
+        )
 
     def __init__(self):
         self.valves = self.Valves()
@@ -54,6 +62,169 @@ class Action:
             "accept": "application/json",
             "Content-Type": "application/json",
         }
+
+    async def check_comfyui_connection(self) -> bool:
+        """
+        Checks if ComfyUI is running and accessible.
+        
+        Returns:
+            bool: True if ComfyUI is accessible, False otherwise
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{self.valves.comfyui_url}/system_stats") as response:
+                    if response.status == 200:
+                        return True
+                    return False
+        except Exception as e:
+            print(f"Error checking ComfyUI connection: {e}")
+            return False
+
+    async def unload_models(self, __event_emitter__=None) -> bool:
+        """
+        Unloads all models from ComfyUI using the unload workflow.
+        
+        Args:
+            __event_emitter__: Callback for emitting status messages
+            
+        Returns:
+            bool: True if models were unloaded successfully, False otherwise
+        """
+        try:
+            # First check if ComfyUI is running
+            if not await self.check_comfyui_connection():
+                if __event_emitter__:
+                    await __event_emitter__(
+                        {
+                            "type": "status",
+                            "data": {
+                                "description": "ComfyUI is not running or not accessible",
+                                "done": True,
+                            },
+                        }
+                    )
+                return False
+
+            # Get the unload workflow from the knowledge base
+            workflows = await self.get_workflows(self.valves.knowledge_base_id)
+            if not workflows:
+                if __event_emitter__:
+                    await __event_emitter__(
+                        {
+                            "type": "status",
+                            "data": {
+                                "description": "Failed to fetch unload workflow",
+                                "done": True,
+                            },
+                        }
+                    )
+                return False
+
+            # Find the unload workflow
+            unload_workflow = next(
+                (file for file in workflows["files"] if file["filename"] in ["unload.txt", "unload.json"]),
+                None,
+            )
+            if not unload_workflow or "data" not in unload_workflow or "content" not in unload_workflow["data"]:
+                if __event_emitter__:
+                    await __event_emitter__(
+                        {
+                            "type": "status",
+                            "data": {
+                                "description": "Unload workflow not found in knowledge base",
+                                "done": True,
+                            },
+                        }
+                    )
+                return False
+
+            # Send the workflow to ComfyUI
+            workflow_data = json.loads(unload_workflow["data"]["content"])
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{self.valves.comfyui_url}/prompt",
+                    json={"prompt": workflow_data}
+                ) as response:
+                    if response.status == 200:
+                        if __event_emitter__:
+                            await __event_emitter__(
+                                {
+                                    "type": "status",
+                                    "data": {
+                                        "description": "Models unloaded successfully",
+                                        "done": True,
+                                    },
+                                }
+                            )
+                        return True
+                    else:
+                        if __event_emitter__:
+                            await __event_emitter__(
+                                {
+                                    "type": "status",
+                                    "data": {
+                                        "description": f"Failed to unload models: {await response.text()}",
+                                        "done": True,
+                                    },
+                                }
+                            )
+                        return False
+
+        except Exception as e:
+            print(f"Error unloading models: {e}")
+            if __event_emitter__:
+                await __event_emitter__(
+                    {
+                        "type": "status",
+                        "data": {
+                            "description": f"Error unloading models: {str(e)}",
+                            "done": True,
+                        },
+                    }
+                )
+            return False
+
+    async def get_comfyui_stats(self) -> Optional[Dict]:
+        """
+        Gets ComfyUI system statistics including VRAM usage.
+        
+        Returns:
+            Optional[Dict]: Dictionary containing system stats if successful,
+                           None if the request fails
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{self.valves.comfyui_url}/system_stats") as response:
+                    if response.status == 200:
+                        return await response.json()
+                    return None
+        except Exception as e:
+            print(f"Error getting ComfyUI stats: {e}")
+            return None
+
+    def format_vram_info(self, stats: Dict) -> str:
+        """
+        Formats VRAM information from system stats into a human-readable string.
+        
+        Args:
+            stats (Dict): System stats dictionary from ComfyUI
+            
+        Returns:
+            str: Formatted VRAM information string
+        """
+        try:
+            if not stats or "devices" not in stats or not stats["devices"]:
+                return "VRAM info unavailable"
+            
+            device = stats["devices"][0]  # Get first CUDA device
+            vram_total = device["vram_total"] / (1024**3)  # Convert to GB
+            vram_free = device["vram_free"] / (1024**3)  # Convert to GB
+            vram_used = vram_total - vram_free
+            
+            return f"VRAM: {vram_used:.1f}/{vram_total:.1f} GB used"
+        except Exception as e:
+            print(f"Error formatting VRAM info: {e}")
+            return "VRAM info unavailable"
 
     async def action(
         self,
@@ -81,11 +252,6 @@ class Action:
             Optional[dict]: A dictionary containing the loaded workflow name if successful,
                            None if the operation fails or is cancelled
         
-        Example:
-            >>> action_instance = Action()
-            >>> result = await action_instance.action({})
-            >>> print(result)
-            {'workflow_name': 'my_workflow'}
         """
         print(f"action:{__name__}")
 
@@ -108,11 +274,20 @@ class Action:
         filename_map = {}
         for file in workflows["files"]:
             base_name = os.path.splitext(file["filename"])[0]
-            filename_map[base_name] = file["filename"]
+            # Skip the unload model in the list
+            if base_name.lower() != "unload":
+                filename_map[base_name] = file["filename"]
 
         # Get list of base filenames (without extensions) for display
         base_filenames = list(filename_map.keys())
         filenames_str = "\n".join(base_filenames)
+
+        # Get VRAM info if enabled
+        vram_info = ""
+        if self.valves.show_vram:
+            stats = await self.get_comfyui_stats()
+            if stats:
+                vram_info = self.format_vram_info(stats)
 
         # Step 2: Show modal with filenames and wait for user input
         if __event_emitter__:
@@ -135,13 +310,13 @@ class Action:
                 }
             )
 
-        # Attempts to clear input area below all fail.
+        # Add unload option to the input
         response = await __event_call__(
             {
                 "type": "input",
                 "data": {
-                    "title": "Select Workflow",
-                    "message": "Type 3+ chars to match",
+                    "title": "Load Workflow",
+                    "message": f"3+ chars{', or `unload`' + vram_info if vram_info else ''}",
                     "placeholder": filenames_str,
                     "value": "",  # Clear the input value
                     "type": "text",  # Explicitly set input type
@@ -156,9 +331,14 @@ class Action:
             await __event_emitter__(
                 {
                     "type": "message",
-                    "data": {"content": f"\n👤 User entered: '{response}'\n```"},
+                    "data": {"content": f"\nUser entered: '{response}'\n```"},
                 }
             )
+
+        # Handle unload command
+        if response and response.strip().lower() == "unload":
+            success = await self.unload_models(__event_emitter__)
+            return {"unloaded": success}
 
         # Handle partial filename matching
         workflow_base_name = None
@@ -167,7 +347,7 @@ class Action:
                 await __event_emitter__(
                     {
                         "type": "status",
-                        "data": {"description": "No workflow loaded", "done": True},
+                        "data": {"description": "No changes made", "done": True},
                     }
                 )
             return None
