@@ -5,6 +5,7 @@ author_url: https://github.com/FooleanBool
 funding_url: https://github.com/FooleanBool
 version: 0.2.0
 required_open_webui_version: 0.5.1
+icon_url: data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3C!--%20License%3A%20Apache.%20Made%20by%20bytedance%3A%20https%3A%2F%2Fgithub.com%2Fbytedance%2FIconPark%20--%3E%3Csvg%20width%3D%22800px%22%20height%3D%22800px%22%20viewBox%3D%220%200%2048%2048%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%3E%3Ctitle%3Eworkbench%3C%2Ftitle%3E%3Cdesc%3ECreated%20with%20Sketch.%3C%2Fdesc%3E%3Cg%20id%3D%22workbench%22%20stroke%3D%22none%22%20stroke-width%3D%221%22%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20id%3D%22%E7%BC%96%E7%BB%84%22%3E%3Crect%20id%3D%22%E7%9F%A9%E5%BD%A2%22%20fill-opacity%3D%220.01%22%20fill%3D%22%23FFFFFF%22%20x%3D%220%22%20y%3D%220%22%20width%3D%2248%22%20height%3D%2248%22%3E%3C%2Frect%3E%3Cpolygon%20id%3D%22Rectangle-55%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20fill%3D%22%232F88FF%22%20fill-rule%3D%22nonzero%22%20stroke-linejoin%3D%22round%22%20points%3D%2212%2033%204%2033%204%207%2044%207%2044%2033%2036%2033%22%3E%3C%2Fpolygon%3E%3Cpath%20d%3D%22M16%2C22%20L16%2C26%22%20id%3D%22Path-207%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M24%2C33%20L24%2C39%22%20id%3D%22Path-207%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M24%2C18%20L24%2C26%22%20id%3D%22Path-208%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M32%2C14%20L32%2C26%22%20id%3D%22Path-209%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M12%2C41%20L36%2C41%22%20id%3D%22Path-23%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E
 """
 
 from pydantic import BaseModel, Field
@@ -340,9 +341,8 @@ class Action:
             success = await self.unload_models(__event_emitter__)
             return {"unloaded": success}
 
-        # Handle partial filename matching
-        workflow_base_name = None
-        if not response:  # User cancelled or cleared the input
+        # Handle empty response (user cancelled or cleared the input)
+        if not response:
             if __event_emitter__:
                 await __event_emitter__(
                     {

@@ -105,6 +105,14 @@ The unload functionality requires a special workflow named "unload" in your know
 ---
 
 Reference:
+
+**unload models workflow**
+```json
+{ "1": { "inputs": { "value": [ "9", 0 ] }, "class_type": "UnloadAllModels", "_meta": { "title": "UnloadAllModels" } }, "9": { "inputs": {}, "class_type": "ModelPassThrough", "_meta": { "title": "start" } }, "10": { "inputs": { "text": [ "1", 0 ] }, "class_type": "ShowText|pysssss", "_meta": { "title": "end" } } }
+```
+(Use custom node manager to install the custom unload node.)
+
+**Comfyui status output**
 ```bash
 curl http://localhost:8188/system_stats
 {"system": {"os": "posix", "ram_total": 67250188288, "ram_free": 43860541440, "comfyui_version": "0.3.27", "python_version": "3.11.11 (main, Feb 25 2025, 02:38:55) [GCC 12.2.0]", "pytorch_version": "2.5.1+cu121", "embedded_python": false, "argv": ["./ComfyUI/main.py", "--listen", "--port", "8188"]}, "devices": [{"name": "cuda:0 NVIDIA GeForce RTX 3090 : cudaMallocAsync", "type": "cuda", "index": 0, "vram_total": 25298141184, "vram_free": 5987286066, "torch_vram_total": 17112760320, "torch_vram_free": 25541682}]}

@@ -5,6 +5,7 @@ author_url: https://github.com/FooleanBool
 funding_url: https://github.com/FooleanBool
 version: 0.1.0
 required_open_webui_version: 0.5.1
+icon_url: data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3C!--%20License%3A%20Apache.%20Made%20by%20bytedance%3A%20https%3A%2F%2Fgithub.com%2Fbytedance%2FIconPark%20--%3E%3Csvg%20width%3D%22800px%22%20height%3D%22800px%22%20viewBox%3D%220%200%2048%2048%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2248%22%20height%3D%2248%22%20fill%3D%22white%22%20fill-opacity%3D%220.01%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%226%22%20width%3D%2240%22%20height%3D%2230%22%20rx%3D%222%22%20fill%3D%22%232F88FF%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%226%22%20width%3D%2240%22%20height%3D%2230%22%20rx%3D%222%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M20%2042H28%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M34%2042H36%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M4%2042H6%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M42%2042H44%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M12%2042H14%22%20stroke%3D%22%23000000%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E
 """
 
 from pydantic import BaseModel, Field
@@ -318,6 +319,17 @@ class Action:
             return None
 
         try:
+            # Handle boolean response (clicking confirm on empty modal)
+            if isinstance(response, bool):
+                if __event_emitter__:
+                    await __event_emitter__(
+                        {
+                            "type": "status",
+                            "data": {"description": "No changes made", "done": True},
+                        }
+                    )
+                return None
+                
             # Parse user input
             updates = self.parse_input(response)
 
