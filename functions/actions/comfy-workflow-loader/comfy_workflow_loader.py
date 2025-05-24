@@ -275,9 +275,8 @@ class Action:
         except aiohttp.ClientError as e:
             logger.error(f"Client error in update_all: {e}")
             return False
-
-        # print(f"current_config: {current_config}")
-        return True  # Indicate success            
+        # All done, will use pass as seen in other action scripts.
+        pass           
 
     def has_required_node(self, node_title: str) -> bool:
         """
