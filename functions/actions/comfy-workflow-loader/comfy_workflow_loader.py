@@ -168,9 +168,10 @@ class Action:
             if not workflow_data:
                 logger.error(f"workflow_data: {workflow_data}")
                 await self.emit_event("Unable to fetch workflow, exiting.", True)
+
             else:
+                # Update
                 complete = await self.update_all(workflow_data)
-            # Update
             if not complete:
                 await self.emit_event("There was a problem :/ Check the logs.", True)
                 logger.error(f"complete: {complete}")
@@ -192,7 +193,9 @@ class Action:
         """
         parser = WorkflowParser()
         parsed_workflow_data = parser.parse(workflow_data)
+
         if not parser.is_complete():
+            logger.debug(f"current_config: {parser.get_missing_nodes()}")
             return f"Workflow missing nodes: {parser.get_missing_nodes()}"
             logger.error(parsed_workflow_data["data"]["content"])
 
@@ -275,8 +278,8 @@ class Action:
         except aiohttp.ClientError as e:
             logger.error(f"Client error in update_all: {e}")
             return False
-        # All done, will use pass as seen in other action scripts.
-        pass           
+        # All done, will use pass as seen in other action scripts. [edit: nah, vscode cries.]
+        return True           
 
     def has_required_node(self, node_title: str) -> bool:
         """

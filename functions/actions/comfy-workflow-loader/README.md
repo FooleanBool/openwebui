@@ -1,6 +1,6 @@
 # 🛠️ ComfyUI Workflow Loader
 
-🚧 **Important: Will only work with models that do not use a negative prompt (only tested with FLUX)** 🚧
+🚧 **Important: Only an admin has the necessary permissions to load a new workflow in OpenWeb-UI** 🚧
 
 ## ⚙️ Installation
 
@@ -74,7 +74,6 @@ You can add workflows in two ways, begin by exporting a workflow from ComfyUI: `
 
 ### 📊 VRAM Display
 When the "Show VRAM" option is enabled, the workflow selection modal will display the current VRAM usage in the format:
-
 `VRAM: X.X/Y.Y GB used`
 This information is retrieved from ComfyUI's system_stats endpoint and is useful for monitoring GPU memory usage. 📈
 
